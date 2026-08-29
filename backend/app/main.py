@@ -1,14 +1,16 @@
 from fastapi import FastAPI
 from sqlalchemy import text
-
 from app.core.config import settings
 from app.database.connection import engine
+from app.routers.users import router as users_router
 
 
 app = FastAPI(
     title=settings.app_name,
     version=settings.app_version,
 )
+
+app.include_router(users_router)
 
 
 @app.get("/")
