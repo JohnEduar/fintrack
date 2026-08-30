@@ -6,6 +6,7 @@ from app.database.connection import get_db
 from app.models.user import User
 from app.schemas.user import UserResponse, UserCreate, UserUpdate
 from app.security.password import hash_password
+from app.security.dependencies import get_current_user
 
 
 router = APIRouter(
@@ -15,7 +16,10 @@ router = APIRouter(
 
 # GET /users
 @router.get("/", response_model=list[UserResponse])
-def get_users(db: Session = Depends(get_db)):
+def get_users(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
     users = db.scalars(
         select(User).where(User.is_active.is_(True))
     ).all()
@@ -27,7 +31,14 @@ def get_users(db: Session = Depends(get_db)):
 def get_user(
     user_id: int,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
+    if current_user.id != user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You do not have permission to access this user",
+        )
+    
     user = db.scalar(
         select(User).where(
             User.id == user_id,
@@ -49,7 +60,13 @@ def update_user(
     user_id: int,
     user_data: UserUpdate,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
+    if current_user.id != user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You do not have permission to update this user",
+        )
     user = db.scalar(
         select(User).where(User.id == user_id)
     )
@@ -126,7 +143,14 @@ def create_user(
 def deactivate_user(
     user_id: int,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
+    if current_user.id != user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You do not have permission to deactivate this user",
+        )
+
     user = db.scalar(
         select(User).where(User.id == user_id)
     )
