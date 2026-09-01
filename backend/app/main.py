@@ -4,6 +4,7 @@ from app.core.config import settings
 from app.database.connection import engine
 from app.routers.users import router as users_router
 from app.auth.router import router as auth_router
+from app.routers.account import router as account_router
 
 
 app = FastAPI(
@@ -13,7 +14,7 @@ app = FastAPI(
 
 app.include_router(users_router)
 app.include_router(auth_router)
-
+app.include_router(account_router)
 
 @app.get("/")
 def root():
