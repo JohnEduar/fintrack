@@ -1,8 +1,9 @@
 from datetime import datetime, timezone
 from enum import Enum
 from typing import TYPE_CHECKING
+from decimal import Decimal
 
-from sqlalchemy import DateTime, Enum as SQLEnum, ForeignKey, String
+from sqlalchemy import DateTime, Enum as SQLEnum, ForeignKey, String, Numeric
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database.base import Base
@@ -35,6 +36,12 @@ class Account(Base):
 
     type: Mapped[AccountType] = mapped_column(
         SQLEnum(AccountType),
+        nullable=False,
+    )
+
+    balance: Mapped[Decimal] = mapped_column(
+        Numeric(15, 2),
+        default=Decimal("0.00"),
         nullable=False,
     )
 

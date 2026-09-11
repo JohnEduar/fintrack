@@ -1,4 +1,5 @@
 from datetime import datetime
+from decimal import Decimal
 
 from pydantic import BaseModel
 
@@ -19,6 +20,7 @@ class AccountResponse(BaseModel):
     id: int
     name: str
     type: AccountType
+    balance: Decimal
     is_active: bool
     created_at: datetime
     updated_at: datetime
