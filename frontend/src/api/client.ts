@@ -1,16 +1,65 @@
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? '/api'
 
-type ApiHealth = {
-  message: string
-  database_connection: number
+type LoginResponse = {
+  access_token: string
+  token_type: string
 }
 
-export async function getApiHealth(): Promise<ApiHealth> {
-  const response = await fetch(`${apiBaseUrl}/`)
+export type FinancialSummary = {
+  total_income: string
+  total_expense: string
+  net_balance: string
+}
 
-  if (!response.ok) {
-    throw new Error('No fue posible conectar con la API.')
+export class UnauthorizedError extends Error {
+  constructor() {
+    super('Tu sesión venció o ya no es válida.')
+    this.name = 'UnauthorizedError'
+  }
+}
+
+export async function login(
+  email: string,
+  password: string,
+): Promise<LoginResponse> {
+  const response = await fetch(`${apiBaseUrl}/auth/login`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      email,
+      password,
+    }),
+  })
+
+  if (response.status === 401) {
+    throw new Error('El correo o la contraseña no son válidos.')
   }
 
-  return response.json() as Promise<ApiHealth>
+  if (!response.ok) {
+    throw new Error('No fue posible iniciar sesión. Inténtalo de nuevo.')
+  }
+
+  return response.json() as Promise<LoginResponse>
+}
+
+export async function getFinancialSummary(
+  accessToken: string,
+): Promise<FinancialSummary> {
+  const response = await fetch(`${apiBaseUrl}/reports/summary`, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  })
+
+  if (response.status === 401) {
+    throw new UnauthorizedError()
+  }
+
+  if (!response.ok) {
+    throw new Error('No fue posible cargar el resumen financiero.')
+  }
+
+  return response.json() as Promise<FinancialSummary>
 }
