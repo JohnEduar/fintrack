@@ -5,6 +5,13 @@ type LoginResponse = {
   token_type: string
 }
 
+export type RegisterRequest = {
+  name: string
+  last_name: string
+  email: string
+  password: string
+}
+
 export type FinancialSummary = {
   total_income: string
   total_expense: string
@@ -42,6 +49,26 @@ export async function login(
   }
 
   return response.json() as Promise<LoginResponse>
+}
+
+export async function registerUser(
+  userData: RegisterRequest,
+): Promise<void> {
+  const response = await fetch(`${apiBaseUrl}/users/`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(userData),
+  })
+
+  if (response.status === 409) {
+    throw new Error('Ya existe una cuenta registrada con este correo.')
+  }
+
+  if (!response.ok) {
+    throw new Error('No fue posible crear la cuenta. Inténtalo de nuevo.')
+  }
 }
 
 export async function getFinancialSummary(

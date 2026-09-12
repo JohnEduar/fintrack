@@ -6,12 +6,14 @@ import {
   saveAccessToken,
 } from './auth/token'
 import Dashboard from './pages/Dashboard'
+import Register from './pages/Register'
 
 function App() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [message, setMessage] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isRegistrationVisible, setIsRegistrationVisible] = useState(false)
   const [isAuthenticated, setIsAuthenticated] = useState(
     () => getAccessToken() !== null,
   )
@@ -22,6 +24,22 @@ function App() {
     setEmail('')
     setPassword('')
     setMessage(logoutMessage)
+  }
+
+  function showRegistration() {
+    setMessage('')
+    setIsRegistrationVisible(true)
+  }
+
+  function showLogin() {
+    setIsRegistrationVisible(false)
+  }
+
+  function handleRegistrationSuccess(registeredEmail: string) {
+    setEmail(registeredEmail)
+    setPassword('')
+    setMessage('Cuenta creada correctamente. Ahora puedes iniciar sesión.')
+    setIsRegistrationVisible(false)
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -54,6 +72,15 @@ function App() {
 
   if (isAuthenticated) {
     return <Dashboard onLogout={handleLogout} />
+  }
+
+  if (isRegistrationVisible) {
+    return (
+      <Register
+        onBackToLogin={showLogin}
+        onRegistrationSuccess={handleRegistrationSuccess}
+      />
+    )
   }
 
   return (
@@ -114,7 +141,14 @@ function App() {
         </form>
 
         <p className="register-hint">
-          ¿Aún no tienes una cuenta? El registro será el siguiente paso.
+          ¿Aún no tienes una cuenta?{' '}
+          <button
+            type="button"
+            className="logout-button"
+            onClick={showRegistration}
+          >
+            Regístrate
+          </button>
         </p>
       </section>
     </main>
