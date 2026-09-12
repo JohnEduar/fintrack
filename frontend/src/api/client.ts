@@ -18,6 +18,27 @@ export type FinancialSummary = {
   net_balance: string
 }
 
+export type AccountType =
+  | 'CHECKING'
+  | 'SAVINGS'
+  | 'CREDIT_CARD'
+  | 'CASH'
+
+export type Account = {
+  id: number
+  name: string
+  type: AccountType
+  balance: string
+  is_active: boolean
+  created_at: string
+  updated_at: string
+}
+
+export type CreateAccountRequest = {
+  name: string
+  type: AccountType
+}
+
 export class UnauthorizedError extends Error {
   constructor() {
     super('Tu sesión venció o ya no es válida.')
@@ -89,4 +110,68 @@ export async function getFinancialSummary(
   }
 
   return response.json() as Promise<FinancialSummary>
+}
+
+export async function getAccounts(
+  accessToken: string,
+): Promise<Account[]> {
+  const response = await fetch(`${apiBaseUrl}/accounts/`, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  })
+
+  if (response.status === 401) {
+    throw new UnauthorizedError()
+  }
+
+  if (!response.ok) {
+    throw new Error('No fue posible cargar tus cuentas.')
+  }
+
+  return response.json() as Promise<Account[]>
+}
+
+export async function createAccount(
+  accessToken: string,
+  accountData: CreateAccountRequest,
+): Promise<Account> {
+  const response = await fetch(`${apiBaseUrl}/accounts/`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(accountData),
+  })
+
+  if (response.status === 401) {
+    throw new UnauthorizedError()
+  }
+
+  if (!response.ok) {
+    throw new Error('No fue posible crear la cuenta.')
+  }
+
+  return response.json() as Promise<Account>
+}
+
+export async function deactivateAccount(
+  accessToken: string,
+  accountId: number,
+): Promise<void> {
+  const response = await fetch(`${apiBaseUrl}/accounts/${accountId}`, {
+    method: 'DELETE',
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  })
+
+  if (response.status === 401) {
+    throw new UnauthorizedError()
+  }
+
+  if (!response.ok) {
+    throw new Error('No fue posible desactivar la cuenta.')
+  }
 }
